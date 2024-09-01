@@ -3,10 +3,18 @@ const jwt = require("jsonwebtoken");
 const dotenv = require("dotenv");
 dotenv.config();
 
-exports.register = async (req, res) => {
+exports.register = async (req, res, next) => {
   const { username, email, password, role } = req.body;
 
   try {
+    const existingUser = await User.findOne({ email });
+    if (existingUser) {
+      res.status(400);
+      return next(
+        new Error("User already exists with this email, please login.")
+      );
+    }
+
     const user = new User({ username, email, password, role });
     await user.save();
 
@@ -16,23 +24,25 @@ exports.register = async (req, res) => {
       { expiresIn: "1h" }
     );
 
-    res
-      .status(201)
-      .json({ token, user: { id: user._id, username, email, role } });
+    res.status(201).json({
+      message: "Registration Successfull",
+      token,
+      user: { id: user._id, username, email, role },
+    });
   } catch (err) {
-    console.error(err);
-    res.status(500).json({ message: "Server error" });
+    next(err);
   }
 };
 
-exports.login = async (req, res) => {
+exports.login = async (req, res, next) => {
   const { email, password } = req.body;
 
   try {
     const user = await User.findOne({ email });
 
     if (!user || !(await user.matchPassword(password))) {
-      return res.status(401).json({ message: "Invalid credentials" });
+      res.status(401);
+      return next(new Error("Invalid credentials"));
     }
 
     const token = jwt.sign(
@@ -42,11 +52,16 @@ exports.login = async (req, res) => {
     );
 
     res.json({
+      message: "Login Successfull",
       token,
-      user: { id: user._id, username: user.username, email, role: user.role },
+      user: {
+        id: user._id,
+        username: user.username,
+        email,
+        role: user.role,
+      },
     });
   } catch (err) {
-    console.error(err);
-    res.status(500).json({ message: "Server error" });
+    next(err);
   }
 };

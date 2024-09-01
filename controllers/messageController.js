@@ -1,13 +1,24 @@
 const Message = require("../models/Message");
 const User = require("../models/User");
 
-exports.sendMessage = async (req, res) => {
+exports.sendMessage = async (req, res, next) => {
   const { recipientId, content } = req.body;
 
   try {
+    if (!recipientId) {
+      res.status(400);
+      return next(new Error("Recipient ID is required"));
+    }
+
+    if (!content || content.trim() === "") {
+      res.status(400);
+      return next(new Error("Message content is required"));
+    }
+
     const recipient = await User.findById(recipientId);
     if (!recipient) {
-      return res.status(404).json({ message: "Recipient not found" });
+      res.status(404);
+      return next(new Error("Recipient not found"));
     }
 
     const message = new Message({
@@ -19,18 +30,27 @@ exports.sendMessage = async (req, res) => {
     const createdMessage = await message.save();
     res.status(201).json(createdMessage);
   } catch (error) {
-    res.status(500).json({ message: "Server error" });
+    next(error);
   }
 };
 
-exports.getMessages = async (req, res) => {
+exports.getMessages = async (req, res, next) => {
   try {
+    if (!req.user || !req.user._id) {
+      res.status(401);
+      return next(new Error("User not authenticated"));
+    }
+
     const messages = await Message.find({
       $or: [{ sender: req.user._id }, { recipient: req.user._id }],
     }).populate("sender recipient", "username");
 
+    if (!messages.length) {
+      return res.status(404).json({ message: "No messages found" });
+    }
+
     res.json(messages);
   } catch (error) {
-    res.status(500).json({ message: "Server error" });
+    next(error);
   }
 };

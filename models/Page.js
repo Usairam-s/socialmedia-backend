@@ -10,7 +10,12 @@ const pageSchema = new mongoose.Schema(
       required: true,
     },
     admins: [{ type: mongoose.Schema.Types.ObjectId, ref: "User" }],
-    followers: [{ type: mongoose.Schema.Types.ObjectId, ref: "User" }],
+    followers: [
+      {
+        user: { type: mongoose.Schema.Types.ObjectId, ref: "User" },
+        role: { type: String, default: "follower" },
+      },
+    ],
   },
   { timestamps: true }
 );

@@ -8,7 +8,7 @@ const {
 const router = express.Router();
 
 // Create a page
-router.post("/", protect, createPage);
+router.post("/create", protect, createPage);
 
 // Join a page
 router.put("/:pageId/join", protect, joinPage);

@@ -8,7 +8,7 @@ const {
 const router = express.Router();
 
 // Create a group
-router.post("/", protect, createGroup);
+router.post("/create", protect, createGroup);
 
 // Join a group
 router.put("/:groupId/join", protect, joinGroup);

@@ -10,6 +10,6 @@ const router = express.Router();
 router.get("/profile", protect, getUserProfile);
 
 // Update user profile
-router.put("/profile", protect, updateUserProfile);
+router.put("/updateprofile", protect, updateUserProfile);
 
 module.exports = router;

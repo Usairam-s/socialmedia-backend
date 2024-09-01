@@ -3,7 +3,6 @@ const User = require("../models/User");
 const dotenv = require("dotenv");
 dotenv.config();
 
-// Middleware to verify JWT and extract user
 const protect = async (req, res, next) => {
   let token;
 
@@ -18,13 +17,20 @@ const protect = async (req, res, next) => {
 
       req.user = await User.findById(decoded.id).select("-password");
 
+      if (!req.user) {
+        res.status(404);
+        return next(new Error("User not found"));
+      }
+
       next();
     } catch (error) {
-      console.error("Token failed", error);
-      return res.status(401).json({ message: "Not authorized, token failed" });
+      console.error("Token verification failed", error);
+      res.status(401);
+      return next(new Error("Not authorized, token failed"));
     }
   } else {
-    return res.status(401).json({ message: "Not authorized, no token" });
+    res.status(401);
+    return next(new Error("Not authorized, no token"));
   }
 };
 
@@ -32,7 +38,8 @@ const protect = async (req, res, next) => {
 const authorize = (...roles) => {
   return (req, res, next) => {
     if (!roles.includes(req.user.role)) {
-      return res.status(403).json({ message: "User role not authorized" });
+      res.status(403);
+      return next(new Error("User role not authorized"));
     }
     next();
   };

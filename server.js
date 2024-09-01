@@ -2,6 +2,7 @@
 const express = require("express");
 const dotenv = require("dotenv");
 const connectDB = require("./config/db");
+const errorHandler = require("./middleware/errorMiddleware");
 
 dotenv.config();
 
@@ -9,7 +10,7 @@ dotenv.config();
 const app = express();
 
 // Connect to database
-// connectDB();
+connectDB();
 
 // Middleware to parse JSON requests
 app.use(express.json());
@@ -27,6 +28,7 @@ app.get("/", (req, res) => {
   res.send("API is running...");
 });
 
+app.use(errorHandler);
 // Define the PORT and start the server
 const PORT = process.env.PORT || 5000;
 app.listen(PORT, () => console.log(`Server running on port ${PORT}`));

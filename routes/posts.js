@@ -6,10 +6,11 @@ const {
   likePost,
   commentOnPost,
 } = require("../controllers/postController");
+const upload = require("../config/cloudinary");
 const router = express.Router();
 
 // Create a post
-router.post("/", protect, createPost);
+router.post("/create", protect, upload.single("media"), createPost);
 
 // Get all posts
 router.get("/", protect, getPosts);
